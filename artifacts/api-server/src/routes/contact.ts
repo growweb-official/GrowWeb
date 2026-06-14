@@ -31,6 +31,13 @@ function broadcastNewMessage(msg: { id: number; name: string; service?: string |
   }
 }
 
+export function broadcastSettingsChange(settings: Record<string, string>) {
+  const payload = JSON.stringify({ type: "settings_changed", settings });
+  for (const client of sseClients) {
+    client.write(`data: ${payload}\n\n`);
+  }
+}
+
 router.post("/contact", async (req, res) => {
   const parsed = SubmitContactBody.safeParse(req.body);
   if (!parsed.success) {

@@ -100,7 +100,7 @@ function App() {
     localStorage.setItem("growweb-theme", theme);
   }, [theme]);
 
-  // Load primary color from CMS settings
+  // Load primary color from CMS settings on mount
   React.useEffect(() => {
     const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
     fetch(`${base}/api/settings`)
@@ -112,6 +112,40 @@ function App() {
         applyPrimaryColor(h, s, l);
       })
       .catch(() => {});
+  }, []);
+
+  // Real-time SSE: apply settings changes instantly when admin saves
+  React.useEffect(() => {
+    const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? "";
+    let es: EventSource;
+    let retryTimeout: ReturnType<typeof setTimeout>;
+
+    function connect() {
+      es = new EventSource(`${base}/api/notifications/stream`);
+      es.onmessage = (e) => {
+        if (!e.data || e.data === "connected") return;
+        try {
+          const payload = JSON.parse(e.data) as { type: string; settings?: Record<string, string> };
+          if (payload.type === "settings_changed" && payload.settings) {
+            const { settings } = payload;
+            const h = settings["primary_color_h"] ?? "152";
+            const s = settings["primary_color_s"] ?? "100";
+            const l = settings["primary_color_l"] ?? "50";
+            applyPrimaryColor(h, s, l);
+          }
+        } catch {}
+      };
+      es.onerror = () => {
+        es.close();
+        retryTimeout = setTimeout(connect, 5000);
+      };
+    }
+
+    connect();
+    return () => {
+      es?.close();
+      clearTimeout(retryTimeout);
+    };
   }, []);
 
   const toggleTheme = React.useCallback(() => {

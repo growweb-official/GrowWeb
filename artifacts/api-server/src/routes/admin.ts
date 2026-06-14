@@ -4,6 +4,7 @@ import { AdminLoginBody, AdminMarkContactReadBody } from "@workspace/api-zod";
 import { eq, desc, count } from "drizzle-orm";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
+import { broadcastSettingsChange } from "./contact";
 
 const router = Router();
 
@@ -196,7 +197,9 @@ router.put("/admin/settings", authMiddleware, async (req, res) => {
       .values({ key, value, updatedAt: new Date() })
       .onConflictDoUpdate({ target: siteSettings.key, set: { value, updatedAt: new Date() } });
   }
-  res.json(await getAllSettings());
+  const allSettings = await getAllSettings();
+  broadcastSettingsChange(allSettings);
+  res.json(allSettings);
 });
 
 // ─── Public Settings ──────────────────────────────────────────────────────────
