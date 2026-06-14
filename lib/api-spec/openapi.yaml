@@ -3,20 +3,27 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: GROWWEB Agency API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: contact
+    description: Contact form submissions
+  - name: portfolio
+    description: Portfolio projects
+  - name: testimonials
+    description: Client testimonials
+  - name: admin
+    description: Admin operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +31,361 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /contact:
+    post:
+      operationId: submitContact
+      tags: [contact]
+      summary: Submit contact form
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "201":
+          description: Message submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactMessage"
+        "400":
+          description: Validation error
+
+  /portfolio:
+    get:
+      operationId: listPortfolio
+      tags: [portfolio]
+      summary: List portfolio projects
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Portfolio list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PortfolioProject"
+
+  /testimonials:
+    get:
+      operationId: listTestimonials
+      tags: [testimonials]
+      summary: List testimonials
+      responses:
+        "200":
+          description: Testimonials list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Testimonial"
+
+  /admin/login:
+    post:
+      operationId: adminLogin
+      tags: [admin]
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminCredentials"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSession"
+        "401":
+          description: Invalid credentials
+
+  /admin/contacts:
+    get:
+      operationId: adminListContacts
+      tags: [admin]
+      summary: List all contact messages (admin only)
+      responses:
+        "200":
+          description: All contact messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContactMessage"
+        "401":
+          description: Unauthorized
+
+  /admin/contacts/{id}:
+    delete:
+      operationId: adminDeleteContact
+      tags: [admin]
+      summary: Delete a contact message
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+    patch:
+      operationId: adminMarkContactRead
+      tags: [admin]
+      summary: Mark contact message as read
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactReadUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactMessage"
+        "401":
+          description: Unauthorized
+
+  /admin/stats:
+    get:
+      operationId: adminGetStats
+      tags: [admin]
+      summary: Get dashboard stats
+      responses:
+        "200":
+          description: Dashboard statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+        "401":
+          description: Unauthorized
+
+  /admin/portfolio:
+    get:
+      operationId: adminListPortfolio
+      tags: [admin]
+      summary: List all portfolio projects (admin)
+      responses:
+        "200":
+          description: Portfolio list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PortfolioProject"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: adminCreatePortfolio
+      tags: [admin]
+      summary: Create portfolio project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PortfolioInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioProject"
+        "401":
+          description: Unauthorized
+
+  /admin/portfolio/{id}:
+    put:
+      operationId: adminUpdatePortfolio
+      tags: [admin]
+      summary: Update portfolio project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PortfolioInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortfolioProject"
+        "401":
+          description: Unauthorized
+    delete:
+      operationId: adminDeletePortfolio
+      tags: [admin]
+      summary: Delete portfolio project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+
+  /admin/testimonials:
+    get:
+      operationId: adminListTestimonials
+      tags: [admin]
+      summary: List all testimonials (admin)
+      responses:
+        "200":
+          description: Testimonials list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Testimonial"
+        "401":
+          description: Unauthorized
+    post:
+      operationId: adminCreateTestimonial
+      tags: [admin]
+      summary: Create testimonial
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestimonialInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Testimonial"
+        "401":
+          description: Unauthorized
+
+  /admin/testimonials/{id}:
+    put:
+      operationId: adminUpdateTestimonial
+      tags: [admin]
+      summary: Update testimonial
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestimonialInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Testimonial"
+        "401":
+          description: Unauthorized
+    delete:
+      operationId: adminDeleteTestimonial
+      tags: [admin]
+      summary: Delete testimonial
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          description: Unauthorized
+
+  /admin/settings:
+    get:
+      operationId: adminGetSettings
+      tags: [admin]
+      summary: Get all site settings
+      responses:
+        "200":
+          description: Site settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteSettingsMap"
+        "401":
+          description: Unauthorized
+    put:
+      operationId: adminUpdateSettings
+      tags: [admin]
+      summary: Update site settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SiteSettingsMap"
+      responses:
+        "200":
+          description: Updated settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteSettingsMap"
+        "401":
+          description: Unauthorized
+
+  /settings:
+    get:
+      operationId: getPublicSettings
+      tags: [admin]
+      summary: Get public site settings
+      responses:
+        "200":
+          description: Public site settings
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SiteSettingsMap"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +396,180 @@ components:
       required:
         - status
 
+    ContactInput:
+      type: object
+      required: [name, email, message]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        phone:
+          type: ["string", "null"]
+        service:
+          type: ["string", "null"]
+        budget:
+          type: ["string", "null"]
+        message:
+          type: string
+          minLength: 1
+
+    ContactReadUpdate:
+      type: object
+      properties:
+        isRead:
+          type: boolean
+
+    ContactMessage:
+      type: object
+      required: [id, name, email, message, isRead, createdAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        service:
+          type: ["string", "null"]
+        budget:
+          type: ["string", "null"]
+        message:
+          type: string
+        isRead:
+          type: boolean
+        createdAt:
+          type: string
+
+    PortfolioProject:
+      type: object
+      required: [id, title, category, description, imageUrl, technologies]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        technologies:
+          type: array
+          items:
+            type: string
+        liveUrl:
+          type: ["string", "null"]
+        featured:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    PortfolioInput:
+      type: object
+      required: [title, category, description, imageUrl, technologies]
+      properties:
+        title:
+          type: string
+          minLength: 1
+        category:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        imageUrl:
+          type: string
+        technologies:
+          type: array
+          items:
+            type: string
+        liveUrl:
+          type: ["string", "null"]
+        featured:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    Testimonial:
+      type: object
+      required: [id, name, role, company, content, rating]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        role:
+          type: string
+        company:
+          type: string
+        content:
+          type: string
+        rating:
+          type: integer
+        avatarUrl:
+          type: ["string", "null"]
+
+    TestimonialInput:
+      type: object
+      required: [name, role, company, content, rating]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        role:
+          type: string
+          minLength: 1
+        company:
+          type: string
+          minLength: 1
+        content:
+          type: string
+          minLength: 1
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+        avatarUrl:
+          type: ["string", "null"]
+
+    AdminCredentials:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    AdminSession:
+      type: object
+      required: [token, username]
+      properties:
+        token:
+          type: string
+        username:
+          type: string
+
+    DashboardStats:
+      type: object
+      required: [totalContacts, unreadContacts, totalProjects, totalTestimonials]
+      properties:
+        totalContacts:
+          type: integer
+        unreadContacts:
+          type: integer
+        totalProjects:
+          type: integer
+        totalTestimonials:
+          type: integer
+
+    SiteSettingsMap:
+      type: object
+      additionalProperties:
+        type: string

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "GROWWEB Agency"
+version = "1.0.0"
+id = "artifacts/growweb"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20523
+
+[services.development]
+run = "pnpm --filter @workspace/growweb run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/growweb", "run", "build" ]
+publicDir = "artifacts/growweb/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20523"
+BASE_PATH = "/"
